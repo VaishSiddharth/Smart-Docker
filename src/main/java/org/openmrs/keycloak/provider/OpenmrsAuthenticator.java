@@ -1,6 +1,5 @@
 package org.openmrs.keycloak.provider;
 
-
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.keycloak.component.ComponentModel;
@@ -17,7 +16,6 @@ import org.openmrs.keycloak.data.UserAdapter;
 import org.openmrs.keycloak.data.UserDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.inject.Inject;
 import javax.persistence.PersistenceException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -26,43 +24,52 @@ import java.security.NoSuchAlgorithmException;
 @Setter(AccessLevel.PACKAGE)
 public class OpenmrsAuthenticator implements UserLookupProvider, CredentialInputValidator, UserStorageProvider {
 
+    protected static final MessageDigest MESSAGE_DIGEST;
+
+    static {
+        try {
+            MESSAGE_DIGEST = MessageDigest.getInstance("SHA-512");
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     protected KeycloakSession session;
     protected ComponentModel model;
-
-    @Setter(onMethod = @__({@Inject}))
     protected UserDao userDao;
 
     private static final Logger log = LoggerFactory.getLogger(OpenmrsAuthenticator.class);
 
-    public OpenmrsAuthenticator(KeycloakSession session, ComponentModel model,UserDao userDao) {
+    public OpenmrsAuthenticator(KeycloakSession session, ComponentModel model, UserDao userDao) {
         this.session = session;
         this.model = model;
-        this.userDao=userDao;
+        this.userDao = userDao;
     }
 
     @Override
     public UserModel getUserById(String id, RealmModel realmModel) {
-        return new UserAdapter(session, realmModel, model, userDao.getMrsUserByUserId(Integer.parseInt(id)));
+        return new UserAdapter(session, realmModel, model, userDao.getOpenmrsUserByUserId(Integer.parseInt(id)));
     }
 
     @Override
     public UserModel getUserByUsername(String username, RealmModel realmModel) {
-        return new UserAdapter(session, realmModel, model, userDao.getMrsUserByUsername(username));
+        return new UserAdapter(session, realmModel, model, userDao.getOpenmrsUserByUsername(username));
     }
 
     @Override
     public UserModel getUserByEmail(String email, RealmModel realmModel) {
-        return new UserAdapter(session, realmModel, model, userDao.getMrsUserByEmail(email));
+        return new UserAdapter(session, realmModel, model, userDao.getOpenmrsUserByEmail(email));
     }
 
     @Override
     public boolean supportsCredentialType(String credentialType) {
-        return credentialType.equals(PasswordCredentialModel.PASSWORD);
+        return credentialType.equals(PasswordCredentialModel.TYPE);
     }
 
     @Override
     public boolean isConfiguredFor(RealmModel realmModel, UserModel userModel, String credentialType) {
-        return credentialType.equals(PasswordCredentialModel.PASSWORD);
+        return credentialType.equals(PasswordCredentialModel.TYPE);
     }
 
     @Override
@@ -71,7 +78,7 @@ public class OpenmrsAuthenticator implements UserLookupProvider, CredentialInput
             return false;
         }
 
-        Object[] passwordAndSalt;
+        String[] passwordAndSalt;
         try {
             passwordAndSalt = userDao.getUserPasswordAndSaltOnRecord(userModel);
         } catch (PersistenceException e) {
@@ -79,10 +86,8 @@ public class OpenmrsAuthenticator implements UserLookupProvider, CredentialInput
             return false;
         }
 
-        String passwordOnRecord = passwordAndSalt[0].toString();
-
-        String saltOnRecord = passwordAndSalt[1].toString();
-
+        String passwordOnRecord = passwordAndSalt[0];
+        String saltOnRecord = passwordAndSalt[1];
         String currentPassword = credentialInput.getChallengeResponse();
 
         if (passwordOnRecord == null || saltOnRecord == null || currentPassword == null) {
@@ -90,19 +95,8 @@ public class OpenmrsAuthenticator implements UserLookupProvider, CredentialInput
         }
 
         String passwordToHash = currentPassword + saltOnRecord;
-
-        String algorithm = "SHA-512";
-        MessageDigest md;
-        byte[] input;
-        try {
-            md = MessageDigest.getInstance(algorithm);
-            input = passwordToHash.getBytes(StandardCharsets.UTF_8);
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Caught exception while computing salted hash for user {}", userModel.getUsername(), e);
-            return false;
-        }
-
-        return passwordOnRecord.equals(hexString(md.digest(input)));
+        byte[] input = passwordToHash.getBytes(StandardCharsets.UTF_8);
+        return passwordOnRecord.equals(hexString(MESSAGE_DIGEST.digest(input)));
     }
 
     private String hexString(byte[] block) {
