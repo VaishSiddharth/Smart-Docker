@@ -58,10 +58,8 @@ public class OpenmrsAuthenticatorTest extends JPAHibernateTest {
 
     @Test
     public void getUserByUsername() {
-        when(userDao.getMrsUserByUsername("admin")).thenReturn(openmrsUserModel);
-
-//        when(openmrsAuthenticator.getUserByUsername("admin", realmModel)).thenReturn(userAdapter);
-
+        when(userDao.getOpenmrsUserByUsername("admin")).thenReturn(openmrsUserModel);
+        
         UserModel result = openmrsAuthenticator.getUserByUsername("admin", realmModel);
 
         assertThat(result, notNullValue());
