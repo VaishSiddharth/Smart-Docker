@@ -1,4 +1,18 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+ * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+ *
+ * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+ * graphic logo is a trademark of OpenMRS Inc.
+ */
 package org.openmrs.keycloak;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,56 +28,49 @@ import org.openmrs.keycloak.data.UserDao;
 import org.openmrs.keycloak.models.OpenmrsUserModel;
 import org.openmrs.keycloak.provider.OpenmrsAuthenticator;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
 public class OpenmrsAuthenticatorTest extends JPAHibernateTest {
-
-    @Mock
-    private KeycloakSession session;
-
-    @Mock
-    private ComponentModel model;
-
-    @Mock
-    private UserDao userDao;
-
-    @Mock
-    private RealmModel realmModel;
-
-    private UserAdapter userAdapter;
-
-
-    @Mock
-    private ComponentModel storageProviderModel;
-
-    private OpenmrsUserModel openmrsUserModel;
-
-    private OpenmrsAuthenticator openmrsAuthenticator;
-
-
-    @Before
-    public void setup() {
-        openmrsAuthenticator = new OpenmrsAuthenticator(session, model, userDao);
-
-        openmrsUserModel = new OpenmrsUserModel();
-        openmrsUserModel.setUsername("admin");
-
-        userAdapter = new UserAdapter(session, realmModel, storageProviderModel, openmrsUserModel);
-        userAdapter.setUsername("admin");
-    }
-
-    @Test
-    public void getUserByUsername() {
-        when(userDao.getOpenmrsUserByUsername("admin")).thenReturn(openmrsUserModel);
-        
-        UserModel result = openmrsAuthenticator.getUserByUsername("admin", realmModel);
-
-        assertThat(result, notNullValue());
-        assertThat(result.getUsername(), notNullValue());
-        assertThat(result.getUsername(), equalTo("admin"));
-    }
+	
+	@Mock
+	private KeycloakSession session;
+	
+	@Mock
+	private ComponentModel model;
+	
+	@Mock
+	private UserDao userDao;
+	
+	@Mock
+	private RealmModel realmModel;
+	
+	private UserAdapter userAdapter;
+	
+	@Mock
+	private ComponentModel storageProviderModel;
+	
+	private OpenmrsUserModel openmrsUserModel;
+	
+	private OpenmrsAuthenticator openmrsAuthenticator;
+	
+	@Before
+	public void setup() {
+		openmrsAuthenticator = new OpenmrsAuthenticator(session, model, userDao);
+		
+		openmrsUserModel = new OpenmrsUserModel();
+		openmrsUserModel.setUsername("admin");
+		
+		userAdapter = new UserAdapter(session, realmModel, storageProviderModel, openmrsUserModel);
+		userAdapter.setUsername("admin");
+	}
+	
+	@Test
+	public void getUserByUsername() {
+		when(userDao.getOpenmrsUserByUsername("admin")).thenReturn(openmrsUserModel);
+		
+		UserModel result = openmrsAuthenticator.getUserByUsername("admin", realmModel);
+		
+		assertThat(result, notNullValue());
+		assertThat(result.getUsername(), notNullValue());
+		assertThat(result.getUsername(), equalTo("admin"));
+	}
 }
