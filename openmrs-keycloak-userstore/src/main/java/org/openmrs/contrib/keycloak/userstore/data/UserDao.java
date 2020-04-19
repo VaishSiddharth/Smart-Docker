@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.keycloak.data;
+package org.openmrs.contrib.keycloak.userstore.data;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -17,7 +17,7 @@ import java.util.Arrays;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
-import org.openmrs.keycloak.models.OpenmrsUserModel;
+import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 
 public class UserDao {
 	

@@ -7,25 +7,31 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.keycloak.models;
+package org.openmrs.contrib.keycloak.userstore.models;
 
-import javax.persistence.*;
-
-import java.util.Set;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import lombok.Data;
 
 @Entity
-@Table(name = "person")
+@Table(name = "users")
 @Data
-public class PersonModel {
+public class OpenmrsUserModel {
 	
 	@Id
-	@Column(name = "person_id")
-	protected Integer personId;
+	@Column(name = "user_id")
+	private Integer userId;
 	
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "person", orphanRemoval = true)
-	private Set<PersonNameModel> names;
+	@OneToOne
+	@JoinColumn(name = "person_id")
+	private PersonModel person;
 	
-	private String gender;
+	private String username;
+	
+	private String email;
 }

@@ -7,13 +7,13 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.keycloak.data;
+package org.openmrs.contrib.keycloak.userstore.data;
 
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.storage.adapter.AbstractUserAdapterFederatedStorage;
-import org.openmrs.keycloak.models.OpenmrsUserModel;
+import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 
 public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 	

@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.keycloak;
+package org.openmrs.contrib.keycloak.userstore;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -32,7 +32,7 @@ public class JPAHibernateTest {
 	protected static EntityManager em;
 	
 	@BeforeClass
-	public static void init() throws FileNotFoundException, SQLException {
+	public static void init() {
 		emf = Persistence.createEntityManagerFactory("openmrs-persistence-test");
 		em = emf.createEntityManager();
 		

@@ -7,14 +7,14 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.keycloak;
+package org.openmrs.contrib.keycloak.userstore;
 
 import static org.junit.Assert.*;
 
 import javax.persistence.Query;
 
 import org.junit.Test;
-import org.openmrs.keycloak.models.OpenmrsUserModel;
+import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 
 public class JPAHibernateCRUDTest extends JPAHibernateTest {
 	

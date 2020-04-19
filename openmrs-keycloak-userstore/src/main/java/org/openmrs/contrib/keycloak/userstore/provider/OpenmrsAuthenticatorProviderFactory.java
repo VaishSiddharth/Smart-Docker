@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.keycloak.provider;
+package org.openmrs.contrib.keycloak.userstore.provider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
+import com.mysql.cj.jdbc.MysqlXADataSource;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.tool.schema.Action;
@@ -34,9 +35,9 @@ import org.keycloak.models.UserModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
 import org.keycloak.storage.UserStorageProviderFactory;
-import org.openmrs.keycloak.data.UserDao;
-import org.openmrs.keycloak.models.PersonModel;
-import org.openmrs.keycloak.models.PersonNameModel;
+import org.openmrs.contrib.keycloak.userstore.data.UserDao;
+import org.openmrs.contrib.keycloak.userstore.models.PersonModel;
+import org.openmrs.contrib.keycloak.userstore.models.PersonNameModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +50,29 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 	private static final List<ProviderConfigProperty> CONFIG_METADATA;
 	
 	static {
-		CONFIG_METADATA = ProviderConfigurationBuilder.create().property().name("JDBC URL")
-		        .defaultValue("mysql://localhost:3306/openmrs").helpText("The JDBC URL for the OpenMRS MySQL Server")
-		        .type(ProviderConfigProperty.STRING_TYPE).add().property().name("User Name").defaultValue("openmrs")
-		        .helpText("The user name of the MySQL user").type(ProviderConfigProperty.STRING_TYPE).add().property()
-		        .name("Password").defaultValue("openmrs").helpText("The passsword for the MySQL user")
-		        .type(ProviderConfigProperty.PASSWORD).secret(true).add().build();
+		// @formatter:off
+		CONFIG_METADATA = ProviderConfigurationBuilder.create()
+				.property()
+					.name("JDBC URL")
+					.defaultValue("mysql://localhost:3306/openmrs")
+					.helpText("The JDBC URL for the OpenMRS MySQL Server")
+		            .type(ProviderConfigProperty.STRING_TYPE)
+					.add()
+				.property()
+					.name("User Name")
+					.defaultValue("openmrs")
+		            .helpText("The user name of the MySQL user")
+					.type(ProviderConfigProperty.STRING_TYPE)
+					.add()
+				.property()
+		            .name("Password")
+					.defaultValue("openmrs")
+					.helpText("The passsword for the MySQL user")
+		            .type(ProviderConfigProperty.PASSWORD)
+					.secret(true)
+					.add()
+				.build();
+		// @formatter:on
 	}
 	
 	@Override
@@ -62,7 +80,8 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 		MultivaluedHashMap<String, String> config = model.getConfig();
 		EntityManagerFactory emf = new HibernatePersistenceProvider().createContainerEntityManagerFactory(
 		    new PersistenceUnitInfoImpl(),
-		    ImmutableMap.<String, Object> builder().put(AvailableSettings.JPA_JDBC_DRIVER, "com.mysql.jdbc.Driver")
+		    ImmutableMap.<String, Object> builder()
+		            .put(AvailableSettings.JPA_JTA_DATASOURCE, MysqlXADataSource.class.getName())
 		            .put(AvailableSettings.JPA_JDBC_URL, config.getFirst("JDBC URL"))
 		            .put(AvailableSettings.JPA_JDBC_USER, config.getFirst("User Name"))
 		            .put(AvailableSettings.JPA_JDBC_PASSWORD, config.getFirst("Password")).build());
@@ -83,7 +102,7 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 	
 	public static class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
 		
-		private static final String PERSISTENCE_UNIT_NAME = "openmrs-userstore";
+		public static final String PERSISTENCE_UNIT_NAME = "openmrs-userstore";
 		
 		private static final List<String> CLASS_NAMES = Arrays.asList(UserModel.class.getName(), PersonModel.class.getName(),
 		    PersonNameModel.class.getName());

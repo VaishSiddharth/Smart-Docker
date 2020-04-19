@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.keycloak;
+package org.openmrs.contrib.keycloak.userstore;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -23,10 +23,10 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.openmrs.keycloak.data.UserAdapter;
-import org.openmrs.keycloak.data.UserDao;
-import org.openmrs.keycloak.models.OpenmrsUserModel;
-import org.openmrs.keycloak.provider.OpenmrsAuthenticator;
+import org.openmrs.contrib.keycloak.userstore.data.UserAdapter;
+import org.openmrs.contrib.keycloak.userstore.data.UserDao;
+import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
+import org.openmrs.contrib.keycloak.userstore.provider.OpenmrsAuthenticator;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OpenmrsAuthenticatorTest extends JPAHibernateTest {

@@ -16,9 +16,9 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
         <!-- add classes -->
-        <class>org.openmrs.keycloak.models.PersonModel</class>
-        <class>org.openmrs.keycloak.models.PersonNameModel</class>
-        <class>org.openmrs.keycloak.models.OpenmrsUserModel</class>
+        <class>org.openmrs.contrib.keycloak.userstore.models.PersonModel</class>
+        <class>org.openmrs.contrib.keycloak.userstore.models.PersonNameModel</class>
+        <class>org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel</class>
 
         <properties>
             <!-- Configuring JDBC properties -->
