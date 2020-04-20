@@ -26,6 +26,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-ear-plugin</artifactId>
+                <configuration>
+                    <defaultLibBundleDir>lib</defaultLibBundleDir>
+                    <modules>
+                        <jarModule>
+                            <groupId>${project.parent.groupId}</groupId>
+                            <artifactId>openmrs-keycloak-userstore</artifactId>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                            <bundleFileName>openmrs-module.jar</bundleFileName>
+                            <bundleDir>/</bundleDir>
+                        </jarModule>
+                    </modules>
+                </configuration>
             </plugin>
         </plugins>
     </build>

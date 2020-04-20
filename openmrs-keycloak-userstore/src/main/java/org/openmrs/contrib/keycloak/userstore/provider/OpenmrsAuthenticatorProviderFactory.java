@@ -51,27 +51,12 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 	
 	static {
 		// @formatter:off
-		CONFIG_METADATA = ProviderConfigurationBuilder.create()
-				.property()
-					.name("JDBC URL")
-					.defaultValue("mysql://localhost:3306/openmrs")
-					.helpText("The JDBC URL for the OpenMRS MySQL Server")
-		            .type(ProviderConfigProperty.STRING_TYPE)
-					.add()
-				.property()
-					.name("User Name")
-					.defaultValue("openmrs")
-		            .helpText("The user name of the MySQL user")
-					.type(ProviderConfigProperty.STRING_TYPE)
-					.add()
-				.property()
-		            .name("Password")
-					.defaultValue("openmrs")
-					.helpText("The passsword for the MySQL user")
-		            .type(ProviderConfigProperty.PASSWORD)
-					.secret(true)
-					.add()
-				.build();
+		CONFIG_METADATA = ProviderConfigurationBuilder.create().property().name("JDBC URL")
+		        .defaultValue("mysql://localhost:3306/openmrs").helpText("The JDBC URL for the OpenMRS MySQL Server")
+		        .type(ProviderConfigProperty.STRING_TYPE).add().property().name("User Name").defaultValue("openmrs")
+		        .helpText("The user name of the MySQL user").type(ProviderConfigProperty.STRING_TYPE).add().property()
+		        .name("Password").defaultValue("openmrs").helpText("The passsword for the MySQL user")
+		        .type(ProviderConfigProperty.PASSWORD).secret(true).add().build();
 		// @formatter:on
 	}
 	
