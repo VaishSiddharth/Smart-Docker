@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jboss-deployment-structure>
     <deployment>
-        <module-alias name="deployment.openmrs"/>
-    </deployment>
-    <sub-deployment name="openmrs-keycloak-userstore.jar">
+        <module-alias name="deployment.${project.parent.artifactId}"/>
         <dependencies>
             <module name="org.keycloak.keycloak-services"/>
         </dependencies>
-    </sub-deployment>
+    </deployment>
 </jboss-deployment-structure>

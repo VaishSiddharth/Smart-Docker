@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>openmrs-keycloak-userstore</artifactId>
+            <artifactId>${project.parent.artifactId}-userstore</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
@@ -27,16 +27,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-ear-plugin</artifactId>
                 <configuration>
-                    <defaultLibBundleDir>lib</defaultLibBundleDir>
-                    <modules>
-                        <jarModule>
-                            <groupId>${project.parent.groupId}</groupId>
-                            <artifactId>openmrs-keycloak-userstore</artifactId>
-                            <includeInApplicationXml>true</includeInApplicationXml>
-                            <bundleFileName>openmrs-keycloak-userstore.jar</bundleFileName>
-                            <bundleDir>/</bundleDir>
-                        </jarModule>
-                    </modules>
+                    <defaultLibBundleDir>APP-INF</defaultLibBundleDir>
+                    <filtering>true</filtering>
                 </configuration>
             </plugin>
         </plugins>
