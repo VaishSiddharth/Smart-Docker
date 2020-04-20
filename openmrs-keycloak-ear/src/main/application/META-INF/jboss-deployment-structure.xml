@@ -3,9 +3,8 @@
     <deployment>
         <module-alias name="deployment.openmrs"/>
     </deployment>
-    <sub-deployment name="openmrs-module.jar">
+    <sub-deployment name="openmrs-keycloak-userstore.jar">
         <dependencies>
-            <module name="org.hibernate"/>
             <module name="org.keycloak.keycloak-services"/>
         </dependencies>
     </sub-deployment>
