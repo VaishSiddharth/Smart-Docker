@@ -27,8 +27,23 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-ear-plugin</artifactId>
                 <configuration>
-                    <defaultLibBundleDir>APP-INF</defaultLibBundleDir>
-                    <filtering>true</filtering>
+                    <defaultBundleDir>APP-INF/lib</defaultBundleDir>
+                    <modules>
+                        <jarModule>
+                            <groupId>${project.parent.groupId}</groupId>
+                            <artifactId>${project.parent.artifactId}-userstore</artifactId>
+                            <bundleDir>/</bundleDir>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
+                    </modules>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <configuration>
+                    <skip>false</skip>
                 </configuration>
             </plugin>
         </plugins>
