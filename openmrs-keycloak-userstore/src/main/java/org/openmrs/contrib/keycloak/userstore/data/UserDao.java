@@ -58,4 +58,22 @@ public class UserDao {
 		query.setParameter("username", userModel.getUsername());
 		return Arrays.stream((Object[]) query.getSingleResult()).map(Object::toString).toArray(String[]::new);
 	}
+	
+	public int getOpenmrsUserCount() {
+		Number count = em.createQuery("select count(u) from OpenmrsUserModel u", Long.class).getSingleResult();
+		return count.intValue();
+	}
+	
+	public TypedQuery<OpenmrsUserModel> getAllOpenmrsUsersQuery() {
+		TypedQuery<OpenmrsUserModel> query = em.createQuery("select u from OpenmrsUserModel u", OpenmrsUserModel.class);
+		return query;
+	}
+	
+	public TypedQuery<OpenmrsUserModel> searchForOpenmrsUserQuery(String search) {
+		TypedQuery<OpenmrsUserModel> query = em.createQuery(
+		    "select u from OpenmrsUserModel u where ( lower(u.username) like :search or u.email like :search ) order by u.username",
+		    OpenmrsUserModel.class);
+		query.setParameter("search", "%" + search.toLowerCase() + "%");
+		return query;
+	}
 }

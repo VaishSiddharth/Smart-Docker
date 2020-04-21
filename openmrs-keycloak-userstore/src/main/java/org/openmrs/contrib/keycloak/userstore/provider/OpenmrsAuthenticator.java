@@ -10,30 +10,34 @@
 package org.openmrs.contrib.keycloak.userstore.provider;
 
 import javax.persistence.PersistenceException;
+import javax.persistence.TypedQuery;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputValidator;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserCredentialModel;
-import org.keycloak.models.UserModel;
+import org.keycloak.models.*;
 import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.user.UserLookupProvider;
+import org.keycloak.storage.user.UserQueryProvider;
 import org.openmrs.contrib.keycloak.userstore.data.UserAdapter;
 import org.openmrs.contrib.keycloak.userstore.data.UserDao;
+import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Setter(AccessLevel.PACKAGE)
-public class OpenmrsAuthenticator implements CredentialInputValidator, UserLookupProvider, UserStorageProvider {
+public class OpenmrsAuthenticator implements CredentialInputValidator, UserLookupProvider, UserStorageProvider, UserQueryProvider {
 	
 	protected static final MessageDigest MESSAGE_DIGEST;
 	
@@ -131,5 +135,77 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	@Override
 	public void close() {
 		
+	}
+	
+	@Override
+	public int getUsersCount(RealmModel realmModel) {
+		return userDao.getOpenmrsUserCount();
+	}
+	
+	@Override
+	public List<UserModel> getUsers(RealmModel realmModel) {
+		return getUsers(realmModel, -1, -1);
+	}
+	
+	@Override
+	public List<UserModel> getUsers(RealmModel realmModel, int firstResult, int maxResults) {
+		TypedQuery<OpenmrsUserModel> query = userDao.getAllOpenmrsUsersQuery();
+		if (firstResult != -1) {
+			query.setFirstResult(firstResult);
+		}
+		if (maxResults != -1) {
+			query.setMaxResults(maxResults);
+		}
+		List<OpenmrsUserModel> results = query.getResultList();
+		List<UserModel> users = new LinkedList<>();
+		for (OpenmrsUserModel userModel : results)
+			users.add(new UserAdapter(session, realmModel, model, userModel));
+		return users;
+	}
+	
+	@Override
+	public List<UserModel> searchForUser(String s, RealmModel realmModel) {
+		return searchForUser(s, realmModel, -1, -1);
+	}
+	
+	@Override
+	public List<UserModel> searchForUser(String search, RealmModel realmModel, int firstResult, int maxResults) {
+		TypedQuery<OpenmrsUserModel> query = userDao.searchForOpenmrsUserQuery(search);
+		if (firstResult != -1) {
+			query.setFirstResult(firstResult);
+		}
+		if (maxResults != -1) {
+			query.setMaxResults(maxResults);
+		}
+		List<OpenmrsUserModel> results = query.getResultList();
+		List<UserModel> users = new LinkedList<>();
+		for (OpenmrsUserModel entity : results)
+			users.add(new UserAdapter(session, realmModel, model, entity));
+		return users;
+	}
+	
+	@Override
+	public List<UserModel> searchForUser(Map<String, String> map, RealmModel realmModel) {
+		return Collections.EMPTY_LIST;
+	}
+	
+	@Override
+	public List<UserModel> searchForUser(Map<String, String> map, RealmModel realmModel, int i, int i1) {
+		return Collections.EMPTY_LIST;
+	}
+	
+	@Override
+	public List<UserModel> getGroupMembers(RealmModel realmModel, GroupModel groupModel, int i, int i1) {
+		return Collections.EMPTY_LIST;
+	}
+	
+	@Override
+	public List<UserModel> getGroupMembers(RealmModel realmModel, GroupModel groupModel) {
+		return Collections.EMPTY_LIST;
+	}
+	
+	@Override
+	public List<UserModel> searchForUserByUserAttribute(String s, String s1, RealmModel realmModel) {
+		return Collections.EMPTY_LIST;
 	}
 }

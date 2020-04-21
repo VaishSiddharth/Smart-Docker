@@ -13,6 +13,8 @@ import static org.junit.Assert.*;
 
 import javax.persistence.Query;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 
@@ -38,8 +40,25 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 	@Test
 	public void getPasswordAndSalt() {
 		Query query = em.createNativeQuery("select password, salt from users u where u.username = 'SidVaish'");
-		Object[] result = (Object[]) query.getSingleResult();
-		assertEquals("123", result[1].toString());
+		String[] result = Arrays.stream((Object[]) query.getSingleResult()).map(Object::toString).toArray(String[]::new);
+		assertEquals("123", result[1]);
+	}
+	
+	@Test
+	public void getUserCount() {
+		Number count = em.createQuery("select count(u) from OpenmrsUserModel u", Long.class).getSingleResult();
+		int numberOfUsers = count.intValue();
+		assertEquals(3, numberOfUsers);
+		
+	}
+	
+	@Test
+	public void searchUsers() {
+		OpenmrsUserModel query = em.createQuery(
+		    "select u from OpenmrsUserModel u where ( lower(u.username) like 'sid' or u.email like 'sid' ) order by u.username",
+		    OpenmrsUserModel.class).getSingleResult();
+		assertTrue("Error, random is too low", query.getUserId() == 186);
+		
 	}
 	
 }
