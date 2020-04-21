@@ -27,15 +27,14 @@ import com.google.common.collect.ImmutableMap;
 import com.mysql.cj.jdbc.MysqlXADataSource;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
-import org.hibernate.tool.schema.Action;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.UserModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
 import org.keycloak.storage.UserStorageProviderFactory;
 import org.openmrs.contrib.keycloak.userstore.data.UserDao;
+import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 import org.openmrs.contrib.keycloak.userstore.models.PersonModel;
 import org.openmrs.contrib.keycloak.userstore.models.PersonNameModel;
 import org.slf4j.Logger;
@@ -52,11 +51,12 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 	static {
 		// @formatter:off
 		CONFIG_METADATA = ProviderConfigurationBuilder.create().property().name("JDBC URL")
-		        .defaultValue("mysql://localhost:3306/openmrs").helpText("The JDBC URL for the OpenMRS MySQL Server")
-		        .type(ProviderConfigProperty.STRING_TYPE).add().property().name("User Name").defaultValue("openmrs")
-		        .helpText("The user name of the MySQL user").type(ProviderConfigProperty.STRING_TYPE).add().property()
-		        .name("Password").defaultValue("openmrs").helpText("The passsword for the MySQL user")
-		        .type(ProviderConfigProperty.PASSWORD).secret(true).add().build();
+		        .defaultValue("jdbc:mysql://localhost:3306/openmrs?useSSL=false&amp;characterEncoding=UTF-8")
+		        .helpText("The JDBC URL for the OpenMRS MySQL Server").type(ProviderConfigProperty.STRING_TYPE).add()
+		        .property().name("User Name").defaultValue("openmrs").helpText("The user name of the MySQL user")
+		        .type(ProviderConfigProperty.STRING_TYPE).add().property().name("Password").defaultValue("openmrs")
+		        .helpText("The passsword for the MySQL user").type(ProviderConfigProperty.PASSWORD).secret(true).add()
+		        .build();
 		// @formatter:on
 	}
 	
@@ -65,11 +65,11 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 		MultivaluedHashMap<String, String> config = model.getConfig();
 		EntityManagerFactory emf = new HibernatePersistenceProvider().createContainerEntityManagerFactory(
 		    new PersistenceUnitInfoImpl(),
-		    ImmutableMap.<String, Object> builder()
-		            .put(AvailableSettings.JPA_JTA_DATASOURCE, MysqlXADataSource.class.getName())
+		    ImmutableMap.<String, Object> builder().put(AvailableSettings.JPA_JTA_DATASOURCE, new MysqlXADataSource())
 		            .put(AvailableSettings.JPA_JDBC_URL, config.getFirst("JDBC URL"))
 		            .put(AvailableSettings.JPA_JDBC_USER, config.getFirst("User Name"))
-		            .put(AvailableSettings.JPA_JDBC_PASSWORD, config.getFirst("Password")).build());
+		            .put(AvailableSettings.JPA_JDBC_PASSWORD, config.getFirst("Password"))
+		            .put(AvailableSettings.DIALECT, "org.hibernate.dialect.MySQLDialect").build());
 		EntityManager em = emf.createEntityManager();
 		
 		return new OpenmrsAuthenticator(keycloakSession, model, new UserDao(em));
@@ -89,13 +89,14 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 		
 		public static final String PERSISTENCE_UNIT_NAME = "openmrs-userstore";
 		
-		private static final List<String> CLASS_NAMES = Arrays.asList(UserModel.class.getName(), PersonModel.class.getName(),
-		    PersonNameModel.class.getName());
+		private static final List<String> CLASS_NAMES = Arrays.asList(OpenmrsUserModel.class.getName(),
+		    PersonModel.class.getName(), PersonNameModel.class.getName());
 		
 		private static final Properties SETTINGS = new Properties();
 		
 		static {
-			SETTINGS.setProperty(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.name());
+			SETTINGS.setProperty(AvailableSettings.DIALECT, "org.hibernate.dialect.MySQLDialect");
+			//			SETTINGS.setProperty(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.toString());
 			SETTINGS.setProperty(AvailableSettings.SHOW_SQL, Boolean.FALSE.toString());
 			SETTINGS.setProperty(AvailableSettings.USE_REFLECTION_OPTIMIZER, Boolean.TRUE.toString());
 		}
@@ -117,7 +118,7 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 		
 		@Override
 		public DataSource getJtaDataSource() {
-			return null;
+			return new MysqlXADataSource();
 		}
 		
 		@Override
