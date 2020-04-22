@@ -9,8 +9,8 @@
  */
 package org.openmrs.contrib.keycloak.userstore.provider;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceException;
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
 import javax.persistence.spi.ClassTransformer;
@@ -24,12 +24,15 @@ import java.util.List;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
-import com.mysql.cj.jdbc.MysqlXADataSource;
+import com.mysql.cj.jdbc.Driver;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.dialect.MySQL55Dialect;
 import org.hibernate.jpa.HibernatePersistenceProvider;
-import org.keycloak.common.util.MultivaluedHashMap;
+import org.hibernate.tool.schema.Action;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.component.ComponentValidationException;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
 import org.keycloak.storage.UserStorageProviderFactory;
@@ -50,29 +53,35 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 	
 	static {
 		// @formatter:off
-		CONFIG_METADATA = ProviderConfigurationBuilder.create().property().name("JDBC URL")
-		        .defaultValue("jdbc:mysql://localhost:3306/openmrs?useSSL=false&amp;characterEncoding=UTF-8")
-		        .helpText("The JDBC URL for the OpenMRS MySQL Server").type(ProviderConfigProperty.STRING_TYPE).add()
-		        .property().name("User Name").defaultValue("openmrs").helpText("The user name of the MySQL user")
-		        .type(ProviderConfigProperty.STRING_TYPE).add().property().name("Password").defaultValue("openmrs")
-		        .helpText("The passsword for the MySQL user").type(ProviderConfigProperty.PASSWORD).secret(true).add()
+		CONFIG_METADATA = ProviderConfigurationBuilder.create()
+				.property()
+					.name("JDBC URL")
+		            .defaultValue("jdbc:mysql://localhost:3306/openmrs?useSSL=false&characterEncoding=UTF-8")
+		            .helpText("The JDBC URL for the OpenMRS MySQL Server")
+					.type(ProviderConfigProperty.STRING_TYPE)
+					.add()
+		        .property()
+					.name("Username")
+					.defaultValue("openmrs")
+					.helpText("The user name of the MySQL user")
+		            .type(ProviderConfigProperty.STRING_TYPE)
+					.add()
+				.property()
+					.name("Password")
+					.defaultValue("openmrs")
+		            .helpText("The passsword for the MySQL user")
+					.type(ProviderConfigProperty.PASSWORD)
+					.secret(true)
+					.add()
 		        .build();
 		// @formatter:on
 	}
 	
+	private EntityManagerFactory emf;
+	
 	@Override
 	public OpenmrsAuthenticator create(KeycloakSession keycloakSession, ComponentModel model) {
-		MultivaluedHashMap<String, String> config = model.getConfig();
-		EntityManagerFactory emf = new HibernatePersistenceProvider().createContainerEntityManagerFactory(
-		    new PersistenceUnitInfoImpl(),
-		    ImmutableMap.<String, Object> builder().put(AvailableSettings.JPA_JTA_DATASOURCE, new MysqlXADataSource())
-		            .put(AvailableSettings.JPA_JDBC_URL, config.getFirst("JDBC URL"))
-		            .put(AvailableSettings.JPA_JDBC_USER, config.getFirst("User Name"))
-		            .put(AvailableSettings.JPA_JDBC_PASSWORD, config.getFirst("Password"))
-		            .put(AvailableSettings.DIALECT, "org.hibernate.dialect.MySQLDialect").build());
-		EntityManager em = emf.createEntityManager();
-		
-		return new OpenmrsAuthenticator(keycloakSession, model, new UserDao(em));
+		return new OpenmrsAuthenticator(keycloakSession, model, new UserDao(emf.createEntityManager()));
 	}
 	
 	@Override
@@ -85,6 +94,30 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 		return CONFIG_METADATA;
 	}
 	
+	@Override
+	public void validateConfiguration(KeycloakSession session, RealmModel realm, ComponentModel config)
+	        throws ComponentValidationException {
+		emf = new HibernatePersistenceProvider().createContainerEntityManagerFactory(new PersistenceUnitInfoImpl(),
+		// @formatter:off
+				ImmutableMap.<String, Object>builder()
+						.put(AvailableSettings.JPA_JDBC_DRIVER, Driver.class.getName())
+						.put(AvailableSettings.JPA_JDBC_URL, config.get("JDBC URL"))
+						.put(AvailableSettings.JPA_JDBC_USER, config.get("Username"))
+						.put(AvailableSettings.JPA_JDBC_PASSWORD, config.get("Password"))
+					.build());
+				// @formatter:on
+		
+		try {
+			emf.createEntityManager().close();
+		}
+		catch (PersistenceException e) {
+			throw new ComponentValidationException(
+			        "An error occurred while trying to validated the supplied connection information the error was: "
+			                + e.getLocalizedMessage(),
+			        e);
+		}
+	}
+	
 	public static class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
 		
 		public static final String PERSISTENCE_UNIT_NAME = "openmrs-userstore";
@@ -95,8 +128,8 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 		private static final Properties SETTINGS = new Properties();
 		
 		static {
-			SETTINGS.setProperty(AvailableSettings.DIALECT, "org.hibernate.dialect.MySQLDialect");
-			//			SETTINGS.setProperty(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.toString());
+			SETTINGS.setProperty(AvailableSettings.DIALECT, MySQL55Dialect.class.getName());
+			SETTINGS.setProperty(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.name().toLowerCase());
 			SETTINGS.setProperty(AvailableSettings.SHOW_SQL, Boolean.FALSE.toString());
 			SETTINGS.setProperty(AvailableSettings.USE_REFLECTION_OPTIMIZER, Boolean.TRUE.toString());
 		}
@@ -118,7 +151,7 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 		
 		@Override
 		public DataSource getJtaDataSource() {
-			return new MysqlXADataSource();
+			return null;
 		}
 		
 		@Override
