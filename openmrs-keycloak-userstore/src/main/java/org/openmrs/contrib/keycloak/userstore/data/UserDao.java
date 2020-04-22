@@ -14,6 +14,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
@@ -44,7 +45,7 @@ public class UserDao {
 	public OpenmrsUserModel getOpenmrsUserByEmail(String email) throws NotImplementedException {
 		TypedQuery<OpenmrsUserModel> query = em.createQuery("select u from OpenmrsUserModel u where u.email = :email",
 		    OpenmrsUserModel.class);
-		query.setParameter("userId", email);
+		query.setParameter("email", email);
 		return query.getSingleResult();
 	}
 	
@@ -64,16 +65,14 @@ public class UserDao {
 		return count.intValue();
 	}
 	
-	public TypedQuery<OpenmrsUserModel> getAllOpenmrsUsersQuery() {
-		TypedQuery<OpenmrsUserModel> query = em.createQuery("select u from OpenmrsUserModel u", OpenmrsUserModel.class);
-		return query;
+	public List<OpenmrsUserModel> getAllOpenmrsUsers(int firstResult, int maxResult) {
+		return em.createQuery("select u from OpenmrsUserModel u", OpenmrsUserModel.class).setFirstResult(firstResult)
+		        .setMaxResults(maxResult).getResultList();
 	}
 	
-	public TypedQuery<OpenmrsUserModel> searchForOpenmrsUserQuery(String search) {
-		TypedQuery<OpenmrsUserModel> query = em.createQuery(
+	public List<OpenmrsUserModel> searchForOpenmrsUserQuery(String search) {
+		return em.createQuery(
 		    "select u from OpenmrsUserModel u where ( lower(u.username) like :search or u.email like :search ) order by u.username",
-		    OpenmrsUserModel.class);
-		query.setParameter("search", "%" + search.toLowerCase() + "%");
-		return query;
+		    OpenmrsUserModel.class).setParameter("search", "%" + search.toLowerCase() + "%").getResultList();
 	}
 }

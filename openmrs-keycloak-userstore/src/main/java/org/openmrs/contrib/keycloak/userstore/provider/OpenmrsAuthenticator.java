@@ -10,15 +10,14 @@
 package org.openmrs.contrib.keycloak.userstore.provider;
 
 import javax.persistence.PersistenceException;
-import javax.persistence.TypedQuery;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.Setter;
@@ -32,7 +31,6 @@ import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.openmrs.contrib.keycloak.userstore.data.UserAdapter;
 import org.openmrs.contrib.keycloak.userstore.data.UserDao;
-import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,23 +142,13 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	@Override
 	public List<UserModel> getUsers(RealmModel realmModel) {
-		return getUsers(realmModel, -1, -1);
+		return getUsers(realmModel, 0, -1);
 	}
 	
 	@Override
 	public List<UserModel> getUsers(RealmModel realmModel, int firstResult, int maxResults) {
-		TypedQuery<OpenmrsUserModel> query = userDao.getAllOpenmrsUsersQuery();
-		if (firstResult != -1) {
-			query.setFirstResult(firstResult);
-		}
-		if (maxResults != -1) {
-			query.setMaxResults(maxResults);
-		}
-		List<OpenmrsUserModel> results = query.getResultList();
-		List<UserModel> users = new LinkedList<>();
-		for (OpenmrsUserModel userModel : results)
-			users.add(new UserAdapter(session, realmModel, model, userModel));
-		return users;
+		return userDao.getAllOpenmrsUsers(firstResult, maxResults).stream()
+		        .map(userModel -> new UserAdapter(session, realmModel, model, userModel)).collect(Collectors.toList());
 	}
 	
 	@Override
@@ -170,18 +158,8 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	@Override
 	public List<UserModel> searchForUser(String search, RealmModel realmModel, int firstResult, int maxResults) {
-		TypedQuery<OpenmrsUserModel> query = userDao.searchForOpenmrsUserQuery(search);
-		if (firstResult != -1) {
-			query.setFirstResult(firstResult);
-		}
-		if (maxResults != -1) {
-			query.setMaxResults(maxResults);
-		}
-		List<OpenmrsUserModel> results = query.getResultList();
-		List<UserModel> users = new LinkedList<>();
-		for (OpenmrsUserModel entity : results)
-			users.add(new UserAdapter(session, realmModel, model, entity));
-		return users;
+		return userDao.searchForOpenmrsUserQuery(search).stream()
+		        .map(userModel -> new UserAdapter(session, realmModel, model, userModel)).collect(Collectors.toList());
 	}
 	
 	@Override
