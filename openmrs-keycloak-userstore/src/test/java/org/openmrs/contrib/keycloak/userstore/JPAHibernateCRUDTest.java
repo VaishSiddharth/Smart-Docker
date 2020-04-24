@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.models.UserModel;
@@ -64,7 +65,8 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 	
 	@Test
 	public void searchUsers() {
-		List<OpenmrsUserModel> query = userDao.searchForOpenmrsUserQuery("admin", 0, 1);
+		List<OpenmrsUserModel> query = userDao
+		        .searchForOpenmrsUserQuery(ImmutableMap.<String, String> builder().put("username", "admin").build(), 0, 1);
 		assertTrue("Error, random is too low", query.get(0).getUserId() == 152);
 		
 	}

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.keycloak.component.ComponentModel;
@@ -39,6 +40,8 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	protected static final MessageDigest MESSAGE_DIGEST;
 	
+	private static final Logger log = LoggerFactory.getLogger(OpenmrsAuthenticator.class);
+	
 	static {
 		try {
 			MESSAGE_DIGEST = MessageDigest.getInstance("SHA-512");
@@ -53,8 +56,6 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	protected ComponentModel model;
 	
 	protected UserDao userDao;
-	
-	private static final Logger log = LoggerFactory.getLogger(OpenmrsAuthenticator.class);
 	
 	public OpenmrsAuthenticator(KeycloakSession session, ComponentModel model, UserDao userDao) {
 		this.session = session;
@@ -158,8 +159,12 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	@Override
 	public List<UserModel> searchForUser(String search, RealmModel realmModel, int firstResult, int maxResults) {
-		return userDao.searchForOpenmrsUserQuery(search, firstResult, maxResults).stream()
-		        .map(userModel -> new UserAdapter(session, realmModel, model, userModel)).collect(Collectors.toList());
+		return userDao
+		        .searchForOpenmrsUserQuery(ImmutableMap.<String, String> builder().put("username", search)
+		                .put("email", search).put("first", search).put("last", search).build(),
+		            firstResult, maxResults)
+		        .stream().map(userModel -> new UserAdapter(session, realmModel, model, userModel))
+		        .collect(Collectors.toList());
 	}
 	
 	@Override
@@ -169,7 +174,7 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	@Override
 	public List<UserModel> searchForUser(Map<String, String> map, RealmModel realmModel, int firstResult, int maxResults) {
-		return userDao.searchForOpenmrsUserQuery(map.get("username"), firstResult, maxResults).stream()
+		return userDao.searchForOpenmrsUserQuery(map, firstResult, maxResults).stream()
 		        .map(userModel -> new UserAdapter(session, realmModel, model, userModel)).collect(Collectors.toList());
 	}
 	

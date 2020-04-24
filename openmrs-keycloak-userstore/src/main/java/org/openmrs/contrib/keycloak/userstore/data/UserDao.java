@@ -15,6 +15,7 @@ import javax.persistence.TypedQuery;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
@@ -70,9 +71,16 @@ public class UserDao {
 		        .setMaxResults(maxResult).getResultList();
 	}
 	
-	public List<OpenmrsUserModel> searchForOpenmrsUserQuery(String search, int firstResult, int maxResult) {
-		return em.createQuery(
-		    "select u from OpenmrsUserModel u where ( lower(u.username) like 'admin' or u.email like 'admin' ) order by u.username",
-		    OpenmrsUserModel.class).setFirstResult(firstResult).setMaxResults(maxResult).getResultList();
+	public List<OpenmrsUserModel> searchForOpenmrsUserQuery(Map<String, String> map, int firstResult, int maxResult) {
+		return em
+		        .createQuery("select u from OpenmrsUserModel u left outer join u.person.names n "
+		                + "where (:username is null or lower(u.username) like lower(:username)) or "
+		                + "(:email is null or lower(u.email) like lower(:email)) or "
+		                + "(:first is null or lower(n.givenName) like lower(:first)) or "
+		                + "(:last is null or lower(n.familyName) like lower(:last))",
+		            OpenmrsUserModel.class)
+		        .setParameter("username", map.get("username")).setParameter("email", map.get("email"))
+		        .setParameter("first", map.get("first")).setParameter("last", map.get("last")).setFirstResult(firstResult)
+		        .setMaxResults(maxResult).getResultList();
 	}
 }
