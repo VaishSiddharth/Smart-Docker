@@ -53,21 +53,39 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 	
 	static {
 		// @formatter:off
-		CONFIG_METADATA = ProviderConfigurationBuilder.create().property().name("JDBC URL")
-		        .defaultValue("jdbc:mysql://localhost:3306/openmrs?useSSL=false&characterEncoding=UTF-8")
-		        .helpText("The JDBC URL for the OpenMRS MySQL Server").type(ProviderConfigProperty.STRING_TYPE).add()
-		        .property().name("Username").defaultValue("openmrs").helpText("The user name of the MySQL user")
-		        .type(ProviderConfigProperty.STRING_TYPE).add().property().name("Password").defaultValue("openmrs")
-		        .helpText("The passsword for the MySQL user").type(ProviderConfigProperty.PASSWORD).secret(true).add()
+		CONFIG_METADATA = ProviderConfigurationBuilder.create()
+				.property()
+					.name("JDBC URL")
+		            .defaultValue("jdbc:mysql://localhost:3306/openmrs?useSSL=false&characterEncoding=UTF-8")
+		            .helpText("The JDBC URL for the OpenMRS MySQL Server")
+					.type(ProviderConfigProperty.STRING_TYPE)
+					.add()
+		        .property()
+					.name("Username")
+					.defaultValue("openmrs")
+					.helpText("The user name of the MySQL user")
+		            .type(ProviderConfigProperty.STRING_TYPE)
+					.add()
+				.property()
+					.name("Password")
+					.defaultValue("openmrs")
+		            .helpText("The passsword for the MySQL user")
+					.type(ProviderConfigProperty.PASSWORD)
+					.secret(true)
+					.add()
 		        .build();
 		// @formatter:on
 	}
 	
-	private EntityManagerFactory emf;
+	private volatile EntityManagerFactory emf;
 	
 	@Override
-	public OpenmrsAuthenticator create(KeycloakSession keycloakSession, ComponentModel model) {
-		return new OpenmrsAuthenticator(keycloakSession, model, new UserDao(emf.createEntityManager()));
+	public OpenmrsAuthenticator create(KeycloakSession keycloakSession, ComponentModel config) {
+		if (emf == null) {
+			ensureEntityManagerFactory(config);
+		}
+		
+		return new OpenmrsAuthenticator(keycloakSession, config, new UserDao(emf.createEntityManager()));
 	}
 	
 	@Override
@@ -83,15 +101,8 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 	@Override
 	public void validateConfiguration(KeycloakSession session, RealmModel realm, ComponentModel config)
 	        throws ComponentValidationException {
-		emf = new HibernatePersistenceProvider().createContainerEntityManagerFactory(new PersistenceUnitInfoImpl(),
-		    // @formatter:off
-		    ImmutableMap.<String, Object> builder().put(AvailableSettings.JPA_JDBC_DRIVER, Driver.class.getName())
-		            .put(AvailableSettings.JPA_JDBC_URL, config.get("JDBC URL"))
-		            .put(AvailableSettings.JPA_JDBC_USER, config.get("Username"))
-		            .put(AvailableSettings.JPA_JDBC_PASSWORD, config.get("Password")).build());
-		// @formatter:on
-		
 		try {
+			ensureEntityManagerFactory(config);
 			emf.createEntityManager().close();
 		}
 		catch (PersistenceException e) {
@@ -99,6 +110,26 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 			        "An error occurred while trying to validated the supplied connection information the error was: "
 			                + e.getLocalizedMessage(),
 			        e);
+		}
+	}
+	
+	private void ensureEntityManagerFactory(ComponentModel config) {
+		if (emf == null) {
+			synchronized (this) {
+				if (emf == null) {
+					emf = new HibernatePersistenceProvider()
+					        .createContainerEntityManagerFactory(new PersistenceUnitInfoImpl(),
+							// @formatter:off
+							ImmutableMap.<String, Object> builder().put(AvailableSettings.JPA_JDBC_DRIVER, Driver.class.getName())
+									.put(AvailableSettings.JPA_JDBC_URL, config.get("JDBC URL"))
+									.put(AvailableSettings.JPA_JDBC_USER, config.get("Username"))
+									.put(AvailableSettings.JPA_JDBC_PASSWORD, config.get("Password")).build());
+							// @formatter:on
+					
+					emf.createEntityManager().close();
+				}
+			}
+			
 		}
 	}
 	
