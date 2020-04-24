@@ -11,6 +11,7 @@ package org.openmrs.contrib.keycloak.userstore.models;
 
 import javax.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import lombok.Data;
@@ -24,8 +25,8 @@ public class PersonModel {
 	@Column(name = "person_id")
 	protected Integer personId;
 	
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "person", orphanRemoval = true)
-	private Set<PersonNameModel> names;
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "person", orphanRemoval = true)
+	private Set<PersonNameModel> names = new HashSet<>();
 	
 	private String gender;
 }

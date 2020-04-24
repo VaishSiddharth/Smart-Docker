@@ -72,8 +72,7 @@ public class UserDao {
 	
 	public List<OpenmrsUserModel> searchForOpenmrsUserQuery(String search, int firstResult, int maxResult) {
 		return em.createQuery(
-		    "select u from OpenmrsUserModel u where ( lower(u.username) like :search or u.email like :search ) order by u.username",
-		    OpenmrsUserModel.class).setFirstResult(firstResult).setMaxResults(maxResult)
-		        .setParameter("search", "%" + search.toLowerCase() + "%").getResultList();
+		    "select u from OpenmrsUserModel u where ( lower(u.username) like 'admin' or u.email like 'admin' ) order by u.username",
+		    OpenmrsUserModel.class).setFirstResult(firstResult).setMaxResults(maxResult).getResultList();
 	}
 }
