@@ -27,6 +27,7 @@ import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputValidator;
 import org.keycloak.models.*;
 import org.keycloak.models.credential.PasswordCredentialModel;
+import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
@@ -65,7 +66,8 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	@Override
 	public UserModel getUserById(String id, RealmModel realmModel) {
-		return new UserAdapter(session, realmModel, model, userDao.getOpenmrsUserByUserId(Integer.parseInt(id)));
+		return new UserAdapter(session, realmModel, model,
+		        userDao.getOpenmrsUserByUserId(Integer.parseInt(StorageId.externalId(id))));
 	}
 	
 	@Override
@@ -159,8 +161,9 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	@Override
 	public List<UserModel> searchForUser(String search, RealmModel realmModel, int firstResult, int maxResults) {
-		return searchForUser(ImmutableMap.<String, String> builder().put("username", search)
-				.put("email", search).put("first", search).put("last", search).build(), realmModel, firstResult, maxResults);
+		return searchForUser(ImmutableMap.<String, String> builder().put("username", search).put("email", search)
+		        .put("first", search).put("last", search).build(),
+		    realmModel, firstResult, maxResults);
 	}
 	
 	@Override

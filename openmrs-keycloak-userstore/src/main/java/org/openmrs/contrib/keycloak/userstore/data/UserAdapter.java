@@ -20,7 +20,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 	
 	private final OpenmrsUserModel openmrsUserModel;
 	
-	private String keycloakStorageId;
+	private final String keycloakStorageId;
 	
 	public UserAdapter(KeycloakSession session, RealmModel realm, ComponentModel storageProviderModel,
 	    OpenmrsUserModel openmrsUserModel) {
