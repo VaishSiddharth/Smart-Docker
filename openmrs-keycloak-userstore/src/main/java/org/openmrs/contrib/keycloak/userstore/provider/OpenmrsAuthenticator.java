@@ -92,7 +92,7 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	@Override
 	public boolean isValid(RealmModel realmModel, UserModel userModel, CredentialInput credentialInput) {
-		if (!((credentialInput instanceof UserCredentialModel) && !supportsCredentialType(credentialInput.getType()))) {
+		if (!(credentialInput instanceof UserCredentialModel) || !supportsCredentialType(credentialInput.getType())) {
 			return false;
 		}
 		

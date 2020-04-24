@@ -89,6 +89,13 @@ public class OpenmrsAuthenticatorProviderFactory implements UserStorageProviderF
 	}
 	
 	@Override
+	public void close() {
+		if (emf != null) {
+			emf.close();
+		}
+	}
+	
+	@Override
 	public String getId() {
 		return PROVIDER_NAME;
 	}
