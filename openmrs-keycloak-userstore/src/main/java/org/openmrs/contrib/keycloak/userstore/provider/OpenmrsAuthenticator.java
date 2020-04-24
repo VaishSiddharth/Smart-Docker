@@ -154,22 +154,18 @@ public class OpenmrsAuthenticator implements CredentialInputValidator, UserLooku
 	
 	@Override
 	public List<UserModel> searchForUser(String s, RealmModel realmModel) {
-		return searchForUser(s, realmModel, -1, -1);
+		return searchForUser(s, realmModel, 0, -1);
 	}
 	
 	@Override
 	public List<UserModel> searchForUser(String search, RealmModel realmModel, int firstResult, int maxResults) {
-		return userDao
-		        .searchForOpenmrsUserQuery(ImmutableMap.<String, String> builder().put("username", search)
-		                .put("email", search).put("first", search).put("last", search).build(),
-		            firstResult, maxResults)
-		        .stream().map(userModel -> new UserAdapter(session, realmModel, model, userModel))
-		        .collect(Collectors.toList());
+		return searchForUser(ImmutableMap.<String, String> builder().put("username", search)
+				.put("email", search).put("first", search).put("last", search).build(), realmModel, firstResult, maxResults);
 	}
 	
 	@Override
 	public List<UserModel> searchForUser(Map<String, String> map, RealmModel realmModel) {
-		return Collections.EMPTY_LIST;
+		return searchForUser(map, realmModel, 0, -1);
 	}
 	
 	@Override
