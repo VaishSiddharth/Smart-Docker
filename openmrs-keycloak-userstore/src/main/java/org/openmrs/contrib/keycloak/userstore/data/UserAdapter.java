@@ -12,6 +12,7 @@ package org.openmrs.contrib.keycloak.userstore.data;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.storage.StorageId;
 import org.keycloak.storage.adapter.AbstractUserAdapterFederatedStorage;
 import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 
@@ -19,15 +20,18 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 	
 	private final OpenmrsUserModel openmrsUserModel;
 	
+	private String keycloakStorageId;
+	
 	public UserAdapter(KeycloakSession session, RealmModel realm, ComponentModel storageProviderModel,
 	    OpenmrsUserModel openmrsUserModel) {
 		super(session, realm, storageProviderModel);
 		this.openmrsUserModel = openmrsUserModel;
+		keycloakStorageId = StorageId.keycloakId(storageProviderModel, String.valueOf(openmrsUserModel.getUserId()));
 	}
 	
 	@Override
 	public String getId() {
-		return String.valueOf(openmrsUserModel.getUserId());
+		return keycloakStorageId;
 	}
 	
 	@Override
