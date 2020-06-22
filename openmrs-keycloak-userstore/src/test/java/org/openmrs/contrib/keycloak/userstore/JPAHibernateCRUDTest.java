@@ -9,66 +9,67 @@
  */
 package org.openmrs.contrib.keycloak.userstore;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.keycloak.models.UserModel;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.contrib.keycloak.userstore.data.UserDao;
 import org.openmrs.contrib.keycloak.userstore.models.OpenmrsUserModel;
 
+@RunWith(MockitoJUnitRunner.class)
 public class JPAHibernateCRUDTest extends JPAHibernateTest {
 	
-	@Mock
-	UserDao userDao;
+	private UserDao userDao;
 	
 	@Mock
-	UserModel userModel;
+	private UserModel userModel;
 	
 	@Before
 	public void setup() {
 		userDao = new UserDao(em);
-		//		userModel.setUsername("SidVaish");
 	}
 	
 	@Test
 	public void getUserByUsername() {
 		OpenmrsUserModel query = userDao.getOpenmrsUserByUsername("admin");
-		assertEquals("admin", query.getUsername());
-		assertTrue("Error, random is too low", query.getUserId() == 152);
+		assertThat(query.getUsername(), equalTo("admin"));
+		assertThat(query.getUserId(), equalTo(152));
 	}
 	
 	@Test
 	public void getUserById() {
-		OpenmrsUserModel query = userDao.getOpenmrsUserByUserId(186);
-		assertEquals("Sid", query.getUsername());
+		assertThat(userDao.getOpenmrsUserByUserId(186).getUsername(), equalTo("Sid"));
 	}
 	
-	//TODO Can't mock USerModel as its giving null pointer
-	//	@Test
-	//	public void getPasswordAndSalt() {
-	//		String[] result = userDao.getUserPasswordAndSaltOnRecord(userModel);
-	//		assertEquals("123", result[1]);
-	//	}
+	@Test
+	public void getPasswordAndSalt() {
+		when(userModel.getUsername()).thenReturn("SidVaish");
+		
+		String[] result = userDao.getUserPasswordAndSaltOnRecord(userModel);
+		
+		assertThat(result[0], equalTo("Sid123"));
+		assertThat(result[1], equalTo("123"));
+	}
 	
 	@Test
 	public void getUserCount() {
-		Number count = userDao.getOpenmrsUserCount();
-		int numberOfUsers = count.intValue();
-		assertEquals(3, numberOfUsers);
-		
+		assertThat(userDao.getOpenmrsUserCount(), equalTo(3));
 	}
 	
 	@Test
 	public void searchUsers() {
 		List<OpenmrsUserModel> query = userDao
 		        .searchForOpenmrsUserQuery(ImmutableMap.<String, String> builder().put("username", "admin").build(), 0, 1);
-		assertTrue("Error, random is too low", query.get(0).getUserId() == 152);
-		
+		assertThat(query.get(0).getUserId(), equalTo(152));
 	}
 	
 }

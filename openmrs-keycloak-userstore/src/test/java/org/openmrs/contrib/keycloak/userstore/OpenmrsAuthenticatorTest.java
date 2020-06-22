@@ -42,12 +42,7 @@ public class OpenmrsAuthenticatorTest extends JPAHibernateTest {
 	
 	@Mock
 	private RealmModel realmModel;
-	
-	private UserAdapter userAdapter;
-	
-	@Mock
-	private ComponentModel storageProviderModel;
-	
+
 	private OpenmrsUserModel openmrsUserModel;
 	
 	private OpenmrsAuthenticator openmrsAuthenticator;
@@ -58,9 +53,6 @@ public class OpenmrsAuthenticatorTest extends JPAHibernateTest {
 		
 		openmrsUserModel = new OpenmrsUserModel();
 		openmrsUserModel.setUsername("admin");
-		
-		userAdapter = new UserAdapter(session, realmModel, storageProviderModel, openmrsUserModel);
-		userAdapter.setUsername("admin");
 	}
 	
 	@Test
